@@ -1,4 +1,12 @@
-# Gift-card reviews: sentiment and emotion audit
+"""Regenerate the agent-drafted report from saved result files, not hand-entered metrics."""
+import json
+from pathlib import Path
+ROOT=Path(__file__).resolve().parent
+r=json.loads((ROOT/'results_final.json').read_text());m=r['metrics'];e=r['emotion_metrics'];meta=r['metadata']
+old=json.loads((ROOT/'evidence/legacy_binary_summary.json').read_text())
+pct=lambda x:f'{x*100:.1f}%'
+matrix='\n'.join('| '+c.title()+' | '+' | '.join(str(m['matrix'][c][p]) for p in ('POSITIVE','NEUTRAL','NEGATIVE'))+' | '+pct(m['per_class'][c]['recall'])+' |' for c in ('POSITIVE','NEUTRAL','NEGATIVE'))
+text=f'''# Gift-card reviews: sentiment and emotion audit
 
 > **Agent-drafted report; student review is still required.** The agent generated the code, pulled these numbers from saved output, and drafted this narrative. Before submitting, check the figures yourself and revise the interpretations into your own words. Automated checks do not replace that personal review.
 
@@ -6,15 +14,15 @@
 
 ## Data and method
 
-Data: **Amazon Reviews ’23**, McAuley Lab, **Gift Cards** category, from the dataset page and its linked review download.[1] The supplied file contains **152,410 reviews**, verified by scanning it. The selected manifest is [balanced_sample.json](balanced_sample.json).
+Data: **Amazon Reviews ’23**, McAuley Lab, **Gift Cards** category, from the dataset page and its linked review download.[1] The supplied file contains **{meta['source_rows']:,} reviews**, verified by scanning it. The selected manifest is [balanced_sample.json](balanced_sample.json).
 
-The final run samples **50 reviews per class (150 total)** from the entire file without replacement, using fixed seed **6418**. Labels are **4–5 stars = POSITIVE, 3 = NEUTRAL, 1–2 = NEGATIVE**. Only title and text go to `cyankiwi/Qwen3.6-35B-A3B-AWQ-4bit`, served through the course’s OpenAI-compatible endpoint; this is not an OpenAI model. [The prompt](prompt.txt) requests sentiment and one primary emotion together. The model does not see the rating.
+The final run samples **{meta['per_class']} reviews per class ({m['total']} total)** from the entire file without replacement, using fixed seed **{meta['seed']}**. Labels are **4–5 stars = POSITIVE, 3 = NEUTRAL, 1–2 = NEGATIVE**. Only title and text go to `{r['model']}`, served through the course’s OpenAI-compatible endpoint; this is not an OpenAI model. [The prompt](prompt.txt) requests sentiment and one primary emotion together. The model does not see the rating.
 
 ## Why the lopsided run looked so good
 
-The original binary run matched **98/100 (98.0%)**, but its labels were **93 positive and 7 negative**. Always predicting positive already scored **93.0%**. Three-star reviews were folded into negative, so neutral-class failure was invisible. See [the saved legacy summary](evidence/legacy_binary_summary.json).
+The original binary run matched **{old['correct']}/{old['total']} ({pct(old['accuracy'])})**, but its labels were **{old['class_counts']['POSITIVE']} positive and {old['class_counts']['NEGATIVE']} negative**. Always predicting positive already scored **{pct(old['baseline'])}**. Three-star reviews were folded into negative, so neutral-class failure was invisible. See [the saved legacy summary](evidence/legacy_binary_summary.json).
 
-The final balanced run scores **107/150 (71.3%)**, versus a **33.3%** single-class baseline. Macro F1 is **67.2%**; unknown outputs: **0**. Balanced accuracy equals overall accuracy because class sizes are equal. These results describe the balanced test, not the source file’s natural class prevalence. This is not a controlled before/after comparison: sample, class definitions, prompt, and parsing changed. The final joint prompt also differs from the earlier sentiment-only balanced run; all figures here use the final joint output.
+The final balanced run scores **{m['correct']}/{m['total']} ({pct(m['accuracy'])})**, versus a **{pct(m['baseline'])}** single-class baseline. Macro F1 is **{pct(m['macro_f1'])}**; unknown outputs: **{m['unknown']}**. Balanced accuracy equals overall accuracy because class sizes are equal. These results describe the balanced test, not the source file’s natural class prevalence. This is not a controlled before/after comparison: sample, class definitions, prompt, and parsing changed. The final joint prompt also differs from the earlier sentiment-only balanced run; all figures here use the final joint output.
 
 ## Where the mistakes go
 
@@ -22,11 +30,9 @@ Rows are actual rating labels; columns are model predictions. Source: [results_f
 
 | Actual | Positive | Neutral | Negative | Recall |
 |---|---:|---:|---:|---:|
-| Positive | 46 | 4 | 0 | 92.0% |
-| Neutral | 15 | 14 | 21 | 28.0% |
-| Negative | 2 | 1 | 47 | 94.0% |
+{matrix}
 
-The main direction is **neutral → negative (21)**, followed by **neutral → positive (15)**. Only **14/50** three-star reviews remain neutral; the reverse negative → neutral error occurs **1** time. Neutral-rated reviews account for **36 of 43 mismatches**. Balancing exposes a weak middle class that strong performance at the extremes had hidden. A mismatch is against a rating proxy, not proof that the model misread the text: a three-star review can still contain clearly favorable or critical language.
+The main direction is **neutral → negative ({m['matrix']['NEUTRAL']['NEGATIVE']})**, followed by **neutral → positive ({m['matrix']['NEUTRAL']['POSITIVE']})**. Only **{m['matrix']['NEUTRAL']['NEUTRAL']}/{meta['per_class']}** three-star reviews remain neutral; the reverse negative → neutral error occurs **{m['matrix']['NEGATIVE']['NEUTRAL']}** time. Neutral-rated reviews account for **{meta['per_class']-m['matrix']['NEUTRAL']['NEUTRAL']} of {m['total']-m['correct']} mismatches**. Balancing exposes a weak middle class that strong performance at the extremes had hidden. A mismatch is against a rating proxy, not proof that the model misread the text: a three-star review can still contain clearly favorable or critical language.
 
 ## LLM versus word-list emotions
 
@@ -38,9 +44,9 @@ The associated papers are *Crowdsourcing a Word-Emotion Association Lexicon* (20
 
 The word-list script lowercases and tokenizes title plus text, counts repeated words, sums the eight emotion associations, and takes the largest score. Ties select the first alphabetical emotion while retaining all tied candidates; no matches produce `NONE`. It does not handle negation, inflections, context, or word sense. The LLM is instead asked to choose the closest contextual emotion from those eight, even when emotional evidence is weak.
 
-The methods agree on **21/150 (14.0%)**. NRC has **27 no-hit reviews** and **72 tied maxima**. Among covered reviews agreement is **21/123 (17.1%)**; among unique-maximum reviews it is **13/51 (25.5%)**. These are agreement rates, **not emotion accuracy**: there are no human emotion labels.
+The methods agree on **{e['agree']}/{e['total']} ({pct(e['agreement'])})**. NRC has **{e['no_hits']} no-hit reviews** and **{e['tied']} tied maxima**. Among covered reviews agreement is **{e['covered_agree']}/{e['covered']} ({pct(e['covered_agree']/e['covered']) if e['covered'] else 'N/A'})**; among unique-maximum reviews it is **{e['unique_top_agree']}/{e['unique_top']} ({pct(e['unique_top_agree']/e['unique_top']) if e['unique_top'] else 'N/A'})**. These are agreement rates, **not emotion accuracy**: there are no human emotion labels.
 
-The LLM most often assigns **anger (56)** and **joy (55)**; NRC most often assigns **anticipation (77)**. The tie rule contributes to that skew, not just the review content. In source row **4444**, “Good gift,” the LLM chooses joy, while NRC ties anticipation, joy, and surprise and selects anticipation. In row **7443**, “so cute,” the LLM chooses joy but the exact-match lexicon has no emotion-bearing tokens. Those examples illustrate tie-breaking and vocabulary coverage—not evidence that one method is universally better. Full text, both labels, and all NRC scores are inspectable in the dashboard.
+The LLM most often assigns **anger ({e['llm_counts'].get('anger',0)})** and **joy ({e['llm_counts'].get('joy',0)})**; NRC most often assigns **anticipation ({e['nrc_counts'].get('anticipation',0)})**. The tie rule contributes to that skew, not just the review content. In source row **4444**, “Good gift,” the LLM chooses joy, while NRC ties anticipation, joy, and surprise and selects anticipation. In row **7443**, “so cute,” the LLM chooses joy but the exact-match lexicon has no emotion-bearing tokens. Those examples illustrate tie-breaking and vocabulary coverage—not evidence that one method is universally better. Full text, both labels, and all NRC scores are inspectable in the dashboard.
 
 ## Bugs, process issues, and checks
 
@@ -73,9 +79,6 @@ The dashboard contains all review text and works offline. The lexicon is **not r
 - [ ] I read the example reviews and revised the conclusions into my own words.
 - [ ] I confirmed the instructor can access my own repository and submitted its link.
 
-## Sources
-
-[1] https://amazon-reviews-2023.github.io
-[2] https://saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm
-[3] https://saifmohammad.com/WebDocs/Lexicons/NRC-Emotion-Lexicon.zip
-[4] https://aclanthology.org/W10-0204
+'''
+(ROOT/'README.md').write_text(text+(ROOT/'SOURCES.md').read_text())
+print('README drafted from saved final and legacy metrics, with registered sources.')

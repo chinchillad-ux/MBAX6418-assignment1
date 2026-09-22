@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "source": "results_final.json",
+  "sentiment_filter_combinations": 60,
+  "emotion_filter_combinations": 600,
+  "records": 150,
+  "sentiment_dom": "passed",
+  "emotion_dom": "passed",
+  "exact_review_ids": "passed",
+  "all_eight_nrc_scores": "passed",
+  "desktop_mobile_bar_geometry": "passed",
+  "unexpected_network_requests": 0,
+  "javascript_errors": 0,
+  "screenshots": [
+    "screenshots/dashboard.png",
+    "screenshots/emotions.png",
+    "screenshots/mobile.png"
+  ]
+}

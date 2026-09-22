@@ -3,13 +3,18 @@ __pycache__/
 *.py[cod]
 .DS_Store
 
-# Downloaded source data and generated outputs
-*.jsonl
-*.jsonl.gz
+# Source data / licensed lexicon downloaded separately
+Gift_Cards.jsonl.gz
+resources/
+archive_binary/
+
+# Earlier intermediate output stays local; final evidence is versioned
 predictions*.csv
+predictions_three_class.jsonl
+results_three_class.json
 smoke.csv
 
-# Local credentials/configuration
+# Credentials
 .env
 .env.*
 !.env.example

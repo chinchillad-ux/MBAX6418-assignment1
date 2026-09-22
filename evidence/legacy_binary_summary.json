@@ -1,0 +1,14 @@
+{
+  "total": 100,
+  "correct": 98,
+  "accuracy": 0.98,
+  "class_counts": {
+    "POSITIVE": 93,
+    "NEGATIVE": 7
+  },
+  "baseline": 0.93,
+  "mapping": "1-3 NEGATIVE; 4-5 POSITIVE",
+  "sampling": "first 100 eligible rows",
+  "source_sha256": "71e14eb1a43b9727796e89821535286554cdd98e2aa629c0669de45bb84f0deb",
+  "caveat": "Legacy parser accepted last sentiment label from reasoning plus final text; raw completions were not retained."
+}

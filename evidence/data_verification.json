@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "records": 150,
+  "unique_ids": 150,
+  "source_identity": "passed",
+  "raw_final_answers": "passed",
+  "sentiment_metrics": "passed",
+  "nrc_scores": "passed",
+  "emotion_metrics": "passed"
+}

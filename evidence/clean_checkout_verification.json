@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "source": "staged Git checkout",
+  "resource_downloads": "publisher originals",
+  "model_calls": 0,
+  "checks": [
+    "unit tests",
+    "source/raw/word-list validation",
+    "dashboard generation",
+    "offline browser assertions and bar geometry"
+  ]
+}
