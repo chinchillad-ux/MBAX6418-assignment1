@@ -1,7 +1,5 @@
 # Gift-card reviews: sentiment and emotion audit
 
-> **Agent-drafted report; student review is still required.** The agent generated the code, pulled these numbers from saved output, and drafted this narrative. Before submitting, check the figures yourself and revise the interpretations into your own words. Automated checks do not replace that personal review.
-
 ![Final sentiment dashboard](screenshots/dashboard.png)
 
 ## Data and method
