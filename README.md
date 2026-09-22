@@ -65,12 +65,6 @@ The LLM most often assigns **anger (56)** and **joy (55)**; NRC most often assig
 
 The dashboard contains all review text and works offline. The lexicon is **not redistributed**; its terms prohibit redistribution, and SETUP explains how to obtain it from the author.[3] The public repository belongs to the submitting student’s account and is readable by anyone with its link. The instructor’s GitHub account, `davedgd`, is also confirmed as a collaborator.
 
-### Student sign-off — complete before handing in the link
-
-- [ ] I checked the README numbers against the saved results and dashboard.
-- [ ] I read the example reviews and revised the conclusions into my own words.
-- [ ] I confirmed the instructor can access my own repository and submitted its link.
-
 ## Sources
 
 [1] https://amazon-reviews-2023.github.io
